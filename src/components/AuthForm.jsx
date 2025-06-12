@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function AuthForm({ type }) {
   const [email, setEmail] = useState('');

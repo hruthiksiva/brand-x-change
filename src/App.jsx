@@ -8,8 +8,11 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Profile from './pages/Profile.jsx';
 import Listing from './pages/Listing';
+import Listings from './pages/Listings';
 import CreateListing from './pages/CreateListing';
 import Consultation from './pages/Consultation.jsx';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
@@ -23,7 +26,10 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/listing/:id" element={<Listing />} />
+              <Route path="/listings" element={<Listings />} />
+              <Route path="/listings/:id" element={<Listing />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               <Route
                 path="/profile"
                 element={

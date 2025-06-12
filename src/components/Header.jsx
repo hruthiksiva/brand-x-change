@@ -126,7 +126,7 @@ export default function Header() {
               Home
             </Link>
             <Link
-              to="/listings"
+              to="/listing"
               className="block px-3 py-2 rounded-lg text-base font-inter text-neutral-600 hover:text-primary hover:bg-neutral-50"
             >
               Browse

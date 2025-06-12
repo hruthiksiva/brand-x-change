@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function ConsultationForm() {
   const [formData, setFormData] = useState({
@@ -104,10 +104,10 @@ export default function ConsultationForm() {
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
-              <option value="">Select a type</option>
+              <option value="">Select a project type</option>
               <option value="branding">Branding</option>
-              <option value="logo">Logo Design</option>
-              <option value="website">Website Design</option>
+              <option value="website">Website Development</option>
+              <option value="marketing">Marketing</option>
               <option value="other">Other</option>
             </select>
           </div>
@@ -123,10 +123,11 @@ export default function ConsultationForm() {
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
-              <option value="">Select a range</option>
+              <option value="">Select a budget range</option>
               <option value="1000-5000">$1,000 - $5,000</option>
               <option value="5000-10000">$5,000 - $10,000</option>
-              <option value="10000+">$10,000+</option>
+              <option value="10000-25000">$10,000 - $25,000</option>
+              <option value="25000+">$25,000+</option>
             </select>
           </div>
           <div>
@@ -142,10 +143,10 @@ export default function ConsultationForm() {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="">Select a timeline</option>
-              <option value="1-2 weeks">1-2 weeks</option>
-              <option value="2-4 weeks">2-4 weeks</option>
-              <option value="1-2 months">1-2 months</option>
-              <option value="2+ months">2+ months</option>
+              <option value="1-3months">1-3 months</option>
+              <option value="3-6months">3-6 months</option>
+              <option value="6-12months">6-12 months</option>
+              <option value="12+months">12+ months</option>
             </select>
           </div>
         </div>
@@ -159,17 +160,20 @@ export default function ConsultationForm() {
             value={formData.description}
             onChange={handleChange}
             required
-            rows="4"
+            rows={4}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            placeholder="Tell us about your project..."
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-        >
-          {loading ? 'Processing...' : 'Submit Request'}
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Submitting...' : 'Submit Request'}
+          </button>
+        </div>
       </form>
     </div>
   );

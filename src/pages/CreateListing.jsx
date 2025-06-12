@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,6 +18,7 @@ export default function CreateListing() {
     features: [''],
     images: []
   });
+  const [imagePreview, setImagePreview] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,29 +51,24 @@ export default function CreateListing() {
     }));
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setLoading(true);
-    setError('');
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...files]
+    }));
 
-    try {
-      const uploadPromises = files.map(async (file) => {
-        const storageRef = ref(storage, `listings/${currentUser.uid}/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        return getDownloadURL(storageRef);
-      });
+    // Create preview URLs
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreview(prev => [...prev, ...previews]);
+  };
 
-      const urls = await Promise.all(uploadPromises);
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, ...urls]
-      }));
-    } catch (err) {
-      setError('Failed to upload images');
-      console.error('Error uploading images:', err);
-    } finally {
-      setLoading(false);
-    }
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+    setImagePreview(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -81,39 +77,51 @@ export default function CreateListing() {
     setError('');
 
     try {
+      // Upload images first
+      const imageUrls = await Promise.all(
+        formData.images.map(async (image) => {
+          const storageRef = ref(storage, `listings/${Date.now()}_${image.name}`);
+          const snapshot = await uploadBytes(storageRef, image);
+          return getDownloadURL(snapshot.ref);
+        })
+      );
+
+      // Create listing document
       const listingData = {
         ...formData,
-        price: Number(formData.price),
-        seller: currentUser.displayName || currentUser.email,
+        images: imageUrls,
         sellerId: currentUser.uid,
         createdAt: new Date().toISOString(),
         status: 'active'
       };
 
       const docRef = await addDoc(collection(db, 'listings'), listingData);
+
+      // Update user's listings array
+      const userRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        listings: [...(currentUser.listings || []), docRef.id]
+      }, { merge: true });
+
       navigate(`/listings/${docRef.id}`);
-    } catch (err) {
-      setError('Failed to create listing');
-      console.error('Error creating listing:', err);
+    } catch (error) {
+      console.error('Error creating listing:', error);
+      setError('Failed to create listing. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-jakarta font-bold text-neutral-900 mb-2">Create New Listing</h1>
-        <p className="font-inter text-neutral-600">Share your brand assets with the community</p>
-      </div>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8">Create New Listing</h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-8">
         <div>
           <label htmlFor="title" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
             Title
@@ -140,79 +148,71 @@ export default function CreateListing() {
             value={formData.description}
             onChange={handleInputChange}
             required
-            rows={4}
+            rows="4"
             className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-            placeholder="Describe your listing in detail"
+            placeholder="Enter listing description"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="price" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
-              Price ($)
-            </label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              required
-              min="0"
-              step="0.01"
-              className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-              placeholder="Enter price"
-            />
-          </div>
+        <div>
+          <label htmlFor="price" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+            Price
+          </label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            value={formData.price}
+            onChange={handleInputChange}
+            required
+            min="0"
+            step="0.01"
+            className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+            placeholder="Enter price"
+          />
+        </div>
 
-          <div>
-            <label htmlFor="category" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
-              Category
-            </label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              required
-              className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-            >
-              <option value="">Select a category</option>
-              <option value="Brand Identity">Brand Identity</option>
-              <option value="Logo Design">Logo Design</option>
-              <option value="Typography">Typography</option>
-              <option value="Color Palette">Color Palette</option>
-              <option value="Social Media">Social Media</option>
-              <option value="Packaging">Packaging</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+        <div>
+          <label htmlFor="category" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleInputChange}
+            required
+            className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+          >
+            <option value="">Select a category</option>
+            <option value="brand">Brand</option>
+            <option value="domain">Domain</option>
+            <option value="website">Website</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
         <div>
           <label className="block font-inter text-sm font-medium text-neutral-700 mb-1">
             Features
           </label>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {formData.features.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-3">
+              <div key={index} className="flex gap-2">
                 <input
                   type="text"
                   value={feature}
                   onChange={(e) => handleFeatureChange(index, e.target.value)}
-                  required
                   className="flex-1 px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                   placeholder={`Feature ${index + 1}`}
                 />
-                {formData.features.length > 1 && (
+                {index > 0 && (
                   <button
                     type="button"
                     onClick={() => removeFeature(index)}
-                    className="p-3 text-neutral-600 hover:text-red-600 transition-colors duration-200"
+                    className="px-4 py-3 text-red-600 hover:text-red-700"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    Remove
                   </button>
                 )}
               </div>
@@ -220,12 +220,9 @@ export default function CreateListing() {
             <button
               type="button"
               onClick={addFeature}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors duration-200"
+              className="text-primary hover:text-primary/90"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Feature
+              + Add Feature
             </button>
           </div>
         </div>
@@ -234,66 +231,61 @@ export default function CreateListing() {
           <label className="block font-inter text-sm font-medium text-neutral-700 mb-1">
             Images
           </label>
-          <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-xl">
-            <div className="space-y-1 text-center">
-              <svg className="mx-auto h-12 w-12 text-neutral-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div className="flex text-sm text-neutral-600">
-                <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary/90 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
-                  <span>Upload files</span>
-                  <input
-                    id="file-upload"
-                    name="file-upload"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="sr-only"
-                  />
-                </label>
-                <p className="pl-1">or drag and drop</p>
+          <div className="space-y-4">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              className="block w-full text-sm text-neutral-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-primary/10 file:text-primary
+                hover:file:bg-primary/20"
+            />
+            {imagePreview.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {imagePreview.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-neutral-500">PNG, JPG, GIF up to 10MB</p>
-            </div>
+            )}
           </div>
-          {formData.images.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {formData.images.map((url, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                  <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="px-6 py-3 rounded-xl border-2 border-neutral-300 text-neutral-700 font-inter font-semibold hover:bg-neutral-50 transition-colors duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-3 rounded-xl bg-primary text-white font-inter font-semibold hover:bg-primary/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <div className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating...
-              </div>
-            ) : (
-              'Create Listing'
-            )}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full flex justify-center items-center px-6 py-3 rounded-xl font-inter font-semibold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creating Listing...
+            </>
+          ) : (
+            'Create Listing'
+          )}
+        </button>
       </form>
     </div>
   );

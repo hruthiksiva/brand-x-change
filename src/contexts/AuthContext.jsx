@@ -7,6 +7,8 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -23,6 +25,16 @@ export function AuthProvider({ children }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
+      
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: email,
+        displayName: displayName,
+        createdAt: new Date().toISOString(),
+        listings: []
+      });
+
       return userCredential.user;
     } catch (error) {
       throw error;
@@ -46,9 +58,31 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function updateUserProfile(profile) {
+    try {
+      await updateProfile(auth.currentUser, profile);
+      // Update user document in Firestore
+      await setDoc(doc(db, 'users', auth.currentUser.uid), {
+        displayName: profile.displayName
+      }, { merge: true });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Fetch additional user data from Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setCurrentUser({ ...user, ...userDoc.data() });
+        } else {
+          setCurrentUser(user);
+        }
+      } else {
+        setCurrentUser(null);
+      }
       setLoading(false);
     });
 
@@ -59,7 +93,8 @@ export function AuthProvider({ children }) {
     currentUser,
     signup,
     login,
-    logout
+    logout,
+    updateUserProfile
   };
 
   return (

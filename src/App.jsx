@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Profile from './pages/Profile.jsx';
+import PublicProfile from './pages/PublicProfile';
 import Listing from './pages/Listing';
 import Listings from './pages/Listings';
 import CreateListing from './pages/CreateListing';
@@ -15,9 +16,17 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import PrivateRoute from './components/PrivateRoute';
 
+// Configure future flags for React Router v7
+const router = {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }
+};
+
 function App() {
   return (
-    <Router>
+    <Router {...router}>
       <AuthProvider>
         <div className="min-h-screen flex flex-col">
           <Header />
@@ -30,6 +39,7 @@ function App() {
               <Route path="/listings/:id" element={<Listing />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/user/:userId" element={<PublicProfile />} />
               <Route
                 path="/profile"
                 element={

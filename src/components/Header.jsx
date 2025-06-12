@@ -45,6 +45,11 @@ export default function Header() {
             <Link to="/contact" className="font-inter text-sm text-neutral-600 hover:text-primary transition-colors duration-200">
               Contact
             </Link>
+            {currentUser && (
+              <Link to="/profile" className="font-inter text-sm text-neutral-600 hover:text-primary transition-colors duration-200">
+                Profile
+              </Link>
+            )}
           </nav>
 
           {/* Desktop Auth Buttons */}
@@ -143,6 +148,14 @@ export default function Header() {
             >
               Contact
             </Link>
+            {currentUser && (
+              <Link
+                to="/profile"
+                className="block px-3 py-2 rounded-lg text-base font-inter text-neutral-600 hover:text-primary hover:bg-neutral-50"
+              >
+                Profile
+              </Link>
+            )}
             {currentUser ? (
               <>
                 <Link

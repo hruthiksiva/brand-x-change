@@ -1,32 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
+  const [sellers, setSellers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchListings = async () => {
+    const fetchListingsAndSellers = async () => {
       try {
-        const listingsCollection = collection(db, 'listings');
-        const listingsSnapshot = await getDocs(listingsCollection);
-        const listingsList = listingsSnapshot.docs.map(doc => ({
+        // Fetch all listings
+        const listingsQuery = query(collection(db, 'listings'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(listingsQuery);
+        const listingsData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        setListings(listingsList);
-      } catch (err) {
+        setListings(listingsData);
+
+        // Fetch seller information for each listing
+        const sellerIds = [...new Set(listingsData.map(listing => listing.sellerId))];
+        const sellersData = {};
+        
+        for (const sellerId of sellerIds) {
+          const sellerDoc = await getDoc(doc(db, 'users', sellerId));
+          if (sellerDoc.exists()) {
+            sellersData[sellerId] = sellerDoc.data();
+          }
+        }
+        
+        setSellers(sellersData);
+      } catch (error) {
         setError('Failed to fetch listings');
-        console.error('Error fetching listings:', err);
+        console.error('Error fetching listings:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchListings();
+    fetchListingsAndSellers();
   }, []);
 
   if (loading) {
@@ -85,7 +100,13 @@ export default function Listings() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="font-inter text-sm">{listing.seller}</span>
+                  <Link
+                    to={`/user/${listing.sellerId}`}
+                    className="text-sm text-gray-600 hover:text-primary transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {sellers[listing.sellerId]?.displayName || 'Loading...'}
+                  </Link>
                 </div>
               </div>
             </div>

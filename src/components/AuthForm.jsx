@@ -20,10 +20,11 @@ export default function AuthForm({ type }) {
     try {
       if (type === 'signup') {
         await signup(email, password, displayName, mobileNumber);
+        navigate('/verify-email');
       } else {
         await login(email, password);
+        navigate('/');
       }
-      navigate('/');
     } catch (error) {
       setError(error.message);
     }
@@ -121,6 +122,16 @@ export default function AuthForm({ type }) {
             className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
             placeholder="Enter your password"
           />
+          {type === 'signin' && (
+            <div className="mt-2 text-right">
+              <Link
+                to="/password-reset"
+                className="text-sm font-medium text-primary hover:text-primary/90 transition-colors duration-200"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+          )}
         </div>
 
         <button

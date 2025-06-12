@@ -5,7 +5,12 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  applyActionCode,
+  verifyPasswordResetCode,
+  confirmPasswordReset
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -26,6 +31,9 @@ export function AuthProvider({ children }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
       
+      // Send email verification
+      await sendEmailVerification(userCredential.user);
+      
       // Create user document in Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         uid: userCredential.user.uid,
@@ -33,9 +41,13 @@ export function AuthProvider({ children }) {
         displayName: displayName,
         mobileNumber: mobileNumber,
         createdAt: new Date().toISOString(),
-        listings: []
+        listings: [],
+        emailVerified: false
       });
 
+      // Sign out the user until they verify their email
+      await signOut(auth);
+      
       return userCredential.user;
     } catch (error) {
       throw error;
@@ -45,6 +57,16 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Check if email is verified
+      if (!userCredential.user.emailVerified) {
+        // Send verification email again
+        await sendEmailVerification(userCredential.user);
+        // Sign out the user
+        await signOut(auth);
+        throw new Error('Please verify your email before signing in. A new verification email has been sent.');
+      }
+      
       return userCredential.user;
     } catch (error) {
       throw error;
@@ -54,6 +76,48 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await signOut(auth);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function sendVerificationEmail() {
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function sendPasswordReset(email) {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function verifyEmail(code) {
+    try {
+      await applyActionCode(auth, code);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function resetPassword(code, newPassword) {
+    try {
+      await confirmPasswordReset(auth, code, newPassword);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function verifyPasswordResetCode(code) {
+    try {
+      return await verifyPasswordResetCode(auth, code);
     } catch (error) {
       throw error;
     }
@@ -75,6 +139,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Check if email is verified
+        if (!user.emailVerified) {
+          // Sign out if email is not verified
+          await signOut(auth);
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
+
         // Fetch additional user data from Firestore
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
@@ -96,7 +169,12 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    sendVerificationEmail,
+    sendPasswordReset,
+    verifyEmail,
+    resetPassword,
+    verifyPasswordResetCode
   };
 
   return (

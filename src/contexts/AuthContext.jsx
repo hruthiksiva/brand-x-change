@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const auth = getAuth();
 
-  async function signup(email, password, displayName) {
+  async function signup(email, password, displayName, mobileNumber) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
@@ -31,6 +31,7 @@ export function AuthProvider({ children }) {
         uid: userCredential.user.uid,
         email: email,
         displayName: displayName,
+        mobileNumber: mobileNumber,
         createdAt: new Date().toISOString(),
         listings: []
       });
@@ -60,10 +61,11 @@ export function AuthProvider({ children }) {
 
   async function updateUserProfile(profile) {
     try {
-      await updateProfile(auth.currentUser, profile);
+      await updateProfile(auth.currentUser, { displayName: profile.displayName });
       // Update user document in Firestore
       await setDoc(doc(db, 'users', auth.currentUser.uid), {
-        displayName: profile.displayName
+        displayName: profile.displayName,
+        mobileNumber: profile.mobileNumber
       }, { merge: true });
     } catch (error) {
       throw error;

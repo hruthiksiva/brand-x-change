@@ -10,10 +10,10 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-jakarta font-bold text-neutral-900 mb-6">
-              Transform Your Brand Identity
+              Your Trusted IP Marketplace
             </h1>
             <p className="max-w-2xl mx-auto text-lg sm:text-xl font-inter text-neutral-600 mb-8">
-              Discover and acquire premium brand identities that elevate your business. Connect with talented designers and find the perfect match for your vision.
+              Buy and sell intellectual property assets with confidence. From trademarks and brand names to domains and patents, we provide a secure platform for IP transactions backed by expert verification.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
@@ -23,7 +23,7 @@ export default function Home() {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Browse Listings
+                Browse IP Assets
               </Link>
               <Link
                 to="/consultation"
@@ -32,7 +32,7 @@ export default function Home() {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                Request Consultation
+                IP Consultation
               </Link>
             </div>
           </div>
@@ -43,10 +43,10 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-jakarta font-bold text-neutral-900 mb-4">
-            Why Choose BrandXChange?
+            Why Choose BrandXChange for IP Trading?
           </h2>
           <p className="max-w-2xl mx-auto font-inter text-neutral-600">
-            We provide a seamless platform for buying and selling brand identities, backed by quality assurance and expert support.
+            We provide a comprehensive platform for intellectual property transactions, ensuring legal compliance and secure transfers.
           </p>
         </div>
 
@@ -59,10 +59,10 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="text-xl font-jakarta font-semibold text-neutral-900 mb-2">
-              Quality Assurance
+              Legal Verification
             </h3>
             <p className="font-inter text-neutral-600">
-              Every brand identity is thoroughly vetted to ensure the highest quality standards and unique designs.
+              Every IP asset undergoes thorough legal verification, including trademark searches, domain ownership checks, and patent validation.
             </p>
           </div>
 
@@ -74,10 +74,10 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="text-xl font-jakarta font-semibold text-neutral-900 mb-2">
-              Secure Transactions
+              Secure Transfer Process
             </h3>
             <p className="font-inter text-neutral-600">
-              Our platform ensures safe and secure transactions with escrow protection for both buyers and sellers.
+              Our platform ensures secure IP transfers with escrow protection, legal documentation, and proper registration updates.
             </p>
           </div>
 
@@ -89,11 +89,42 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="text-xl font-jakarta font-semibold text-neutral-900 mb-2">
-              Expert Support
+              IP Expert Support
             </h3>
             <p className="font-inter text-neutral-600">
-              Get assistance from our team of experts throughout your brand identity acquisition journey.
+              Access specialized IP consultants for valuation, due diligence, and transfer assistance throughout your transaction.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Asset Types Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-jakarta font-bold text-neutral-900 mb-4">
+            Types of IP Assets
+          </h2>
+          <p className="max-w-2xl mx-auto font-inter text-neutral-600">
+            Trade various forms of intellectual property with confidence
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="p-6 rounded-2xl bg-white border border-neutral-200">
+            <h3 className="text-lg font-jakarta font-semibold text-neutral-900 mb-2">Trademarks</h3>
+            <p className="font-inter text-neutral-600">Registered and unregistered trademarks, brand names, and logos</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white border border-neutral-200">
+            <h3 className="text-lg font-jakarta font-semibold text-neutral-900 mb-2">Domain Names</h3>
+            <p className="font-inter text-neutral-600">Premium domains with traffic, revenue, or brand value</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white border border-neutral-200">
+            <h3 className="text-lg font-jakarta font-semibold text-neutral-900 mb-2">Patents</h3>
+            <p className="font-inter text-neutral-600">Utility and design patents with market potential</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white border border-neutral-200">
+            <h3 className="text-lg font-jakarta font-semibold text-neutral-900 mb-2">Copyrights</h3>
+            <p className="font-inter text-neutral-600">Creative works, software, and digital assets</p>
           </div>
         </div>
       </section>
@@ -102,10 +133,10 @@ export default function Home() {
       <section className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-jakarta font-bold text-neutral-900 mb-4">
-            Ready to Transform Your Brand?
+            Ready to Trade Your IP Assets?
           </h2>
           <p className="max-w-2xl mx-auto font-inter text-neutral-600 mb-8">
-            Join our community of designers and businesses to start your brand transformation journey today.
+            Join our community of IP owners and buyers. List your assets or find the perfect IP for your business.
           </p>
           <Link
             to="/signup"

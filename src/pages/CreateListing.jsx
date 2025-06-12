@@ -16,7 +16,19 @@ export default function CreateListing() {
     price: '',
     category: '',
     features: [''],
-    images: []
+    images: [],
+    supportingDocs: {
+      description: '',
+      available: false
+    },
+    usageHistory: {
+      description: '',
+      metrics: {
+        traffic: '',
+        revenue: '',
+        brandRecognition: ''
+      }
+    }
   });
   const [imagePreview, setImagePreview] = useState([]);
 
@@ -49,6 +61,42 @@ export default function CreateListing() {
       ...prev,
       features: prev.features.filter((_, i) => i !== index)
     }));
+  };
+
+  const handleSupportingDocsChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      supportingDocs: {
+        ...prev.supportingDocs,
+        [name]: type === 'checkbox' ? checked : value
+      }
+    }));
+  };
+
+  const handleUsageHistoryChange = (e) => {
+    const { name, value } = e.target;
+    if (name.startsWith('metrics.')) {
+      const metricField = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        usageHistory: {
+          ...prev.usageHistory,
+          metrics: {
+            ...prev.usageHistory.metrics,
+            [metricField]: value
+          }
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        usageHistory: {
+          ...prev.usageHistory,
+          [name]: value
+        }
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -266,6 +314,106 @@ export default function CreateListing() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Supporting Documentation Section */}
+        <div className="border-t border-neutral-200 pt-6">
+          <h2 className="text-xl font-semibold mb-4">Supporting Documentation (Optional)</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="available"
+                  checked={formData.supportingDocs.available}
+                  onChange={handleSupportingDocsChange}
+                  className="rounded border-neutral-300 text-primary focus:ring-primary/20"
+                />
+                <span className="font-inter text-sm font-medium text-neutral-700">
+                  Supporting documentation available
+                </span>
+              </label>
+            </div>
+            <div>
+              <label htmlFor="supportingDocsDescription" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                Documentation Details
+              </label>
+              <textarea
+                id="supportingDocsDescription"
+                name="description"
+                value={formData.supportingDocs.description}
+                onChange={handleSupportingDocsChange}
+                rows="3"
+                className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                placeholder="Describe available documentation (e.g., trademark certificates, patent filings, appraisal reports)"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Usage History Section */}
+        <div className="border-t border-neutral-200 pt-6">
+          <h2 className="text-xl font-semibold mb-4">Usage History & Metrics (Optional)</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="usageHistoryDescription" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                General Description
+              </label>
+              <textarea
+                id="usageHistoryDescription"
+                name="description"
+                value={formData.usageHistory.description}
+                onChange={handleUsageHistoryChange}
+                rows="3"
+                className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                placeholder="Describe the usage history and current status"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="traffic" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                  Traffic Stats
+                </label>
+                <input
+                  type="text"
+                  id="traffic"
+                  name="metrics.traffic"
+                  value={formData.usageHistory.metrics.traffic}
+                  onChange={handleUsageHistoryChange}
+                  className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  placeholder="e.g., ~1,000 monthly organic visits"
+                />
+              </div>
+              <div>
+                <label htmlFor="revenue" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                  Revenue (if applicable)
+                </label>
+                <input
+                  type="text"
+                  id="revenue"
+                  name="metrics.revenue"
+                  value={formData.usageHistory.metrics.revenue}
+                  onChange={handleUsageHistoryChange}
+                  className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  placeholder="e.g., $500 monthly revenue"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor="brandRecognition" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                  Brand Recognition/Market Presence
+                </label>
+                <input
+                  type="text"
+                  id="brandRecognition"
+                  name="metrics.brandRecognition"
+                  value={formData.usageHistory.metrics.brandRecognition}
+                  onChange={handleUsageHistoryChange}
+                  className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  placeholder="e.g., Established brand with 10,000 social media followers"
+                />
+              </div>
+            </div>
           </div>
         </div>
 

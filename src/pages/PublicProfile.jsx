@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -66,15 +66,32 @@ export default function PublicProfile() {
     <div className="max-w-4xl mx-auto">
       <div className="bg-white shadow rounded-lg p-6 mb-8">
         <h1 className="text-3xl font-bold mb-4">{user.displayName}</h1>
-        <p className="text-gray-600">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-700">Mobile Number</h2>
+            <p className="text-gray-600">{user.mobileNumber || 'Not provided'}</p>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-700">Member Since</h2>
+            <p className="text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-2xl font-bold mb-6">Listings</h2>
-        {listings.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : listings.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((listing) => (
-              <div key={listing.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+              <Link
+                key={listing.id}
+                to={`/listings/${listing.id}`}
+                className="block border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+              >
                 {listing.images && listing.images[0] && (
                   <img
                     src={listing.images[0]}
@@ -87,7 +104,7 @@ export default function PublicProfile() {
                   <p className="text-gray-600 mb-2">${listing.price}</p>
                   <p className="text-sm text-gray-500">{listing.description.substring(0, 100)}...</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (

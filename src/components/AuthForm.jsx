@@ -6,6 +6,7 @@ export default function AuthForm({ type }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup, login } = useAuth();
@@ -18,7 +19,7 @@ export default function AuthForm({ type }) {
 
     try {
       if (type === 'signup') {
-        await signup(email, password, displayName);
+        await signup(email, password, displayName, mobileNumber);
       } else {
         await login(email, password);
       }
@@ -60,20 +61,36 @@ export default function AuthForm({ type }) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {type === 'signup' && (
-          <div>
-            <label htmlFor="displayName" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
-              Display Name
-            </label>
-            <input
-              type="text"
-              id="displayName"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              required
-              className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-              placeholder="Enter your display name"
-            />
-          </div>
+          <>
+            <div>
+              <label htmlFor="displayName" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                Display Name
+              </label>
+              <input
+                type="text"
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+                className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                placeholder="Enter your display name"
+              />
+            </div>
+            <div>
+              <label htmlFor="mobileNumber" className="block font-inter text-sm font-medium text-neutral-700 mb-1">
+                Mobile Number
+              </label>
+              <input
+                type="tel"
+                id="mobileNumber"
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value)}
+                required
+                className="block w-full px-4 py-3 rounded-xl border border-neutral-300 font-inter text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                placeholder="Enter your mobile number"
+              />
+            </div>
+          </>
         )}
 
         <div>
